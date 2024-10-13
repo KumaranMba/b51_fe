@@ -1,12 +1,43 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 
-function LoggedInPage({user,setUser,token,setToken}) {
+function LoggedInPage({user,setUser,token,setToken,isRegister,setIsRegister}) {
 
   const [newNote,setNewNote] = useState('');
+  const [notes,setNotes] = useState([]);
+
+  const fetchNotes = async()=>{
+    // prepare the token object
+    const config = {
+      headers:{
+        'Authorization':`Bearer ${token}`
+      }
+    };
+
+    console.log(`Fetching notes...`);
+    try{
+      const response= await axios.get(`http://localhost:3001/api/notes`,config);
+      console.log(`Notes fetching successfully`);
+      console.log('Note fetching successfully');
+      console.log(response.data);
+      setNotes(response.data);
+    }catch(e) {
+        console.log(`Error fetching notes`,e);
+    }
+  }
+
+  useEffect(()=>{
+    fetchNotes();
+  },[])
     const onLogout = () =>{
         setUser(null);
         setToken(null);
+
+        window.localStorage.removeItem('user');
+        window.localStorage.removeItem('token');
+
+        setIsRegister(true);
+        fetchNotes();
     }
     
     const addNote = async (e) =>{
@@ -49,6 +80,10 @@ function LoggedInPage({user,setUser,token,setToken}) {
          />
          <button type='submit'>Save</button>
       </form>
+
+      <ul>{
+        notes.map((note)=><li key={note._id}>{note.content}</li>)
+      }</ul>
 
     </div>
   )
